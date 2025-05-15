@@ -3,7 +3,7 @@
 
 import { useEffect } from 'react';
 import { useMap } from 'react-leaflet';
-import { Station } from "@/types/station2"; // Đảm bảo đường dẫn đúng
+import { Station } from "@/types/station2"; 
 import L from 'leaflet'; // Import L để sử dụng LatLngExpression nếu cần
 
 interface MapUpdaterProps {

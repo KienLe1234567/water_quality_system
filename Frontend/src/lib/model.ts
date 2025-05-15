@@ -1,4 +1,4 @@
-import { ModelAI } from "@/types/models";
+import { ModelAI, BestRecommend } from "@/types/models";
 
 import axios from "axios";
 
@@ -6,6 +6,21 @@ interface param {
     offset?: number,
     limit?: number
 }
+
+export async function getBestRecommend(station_id: string, parameter_name: string , metric_name?:string): Promise<BestRecommend> {
+    try {
+      const params = new URLSearchParams();
+      if (metric_name !== undefined) {params.append("metric_name", metric_name);}
+      const baseUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v2/models/metrics/newest?parameter_name=${parameter_name}&station_id=${station_id}`;
+      const url = (metric_name !== undefined) ? `${baseUrl}&metric_name=${metric_name}` : baseUrl;
+      const res = await axios.get(url);
+      return res.data;
+    } catch (error) {
+      console.error(error);
+      throw new Error("Failed to get recommend");
+    }
+  }
+
 export async function getAllAIModels(options: param = {}): Promise<ModelAI[]> {
     try {
       const params = new URLSearchParams();
