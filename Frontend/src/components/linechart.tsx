@@ -12,7 +12,7 @@ import type { ApexOptions } from "apexcharts";
 import type { DataPoint } from "@/types/station2"; // Ensure this path is correct
 import { format } from 'date-fns';
 import { getDonvi } from "@/lib/utils";
-
+import {getBestRecommend} from "@/lib/model"
 // Dynamic Import Chart
 const Chart = dynamic(() => import("react-apexcharts"), {
     ssr: false,
@@ -21,6 +21,7 @@ const Chart = dynamic(() => import("react-apexcharts"), {
 
 // Props Interface
 interface ChartlineProps {
+    bestmodel: string|null;
     historicalDataPoints: DataPoint[];
     groupedPredictionDataPoints: Map<string, DataPoint[]>;
     selectedFeature: string;
@@ -74,6 +75,7 @@ type ApexChartSeries = {
 
 // Component Implementation
 const Chartline: React.FC<ChartlineProps> = ({
+    bestmodel,
     historicalDataPoints,
     groupedPredictionDataPoints,
     selectedFeature,
@@ -480,8 +482,15 @@ const Chartline: React.FC<ChartlineProps> = ({
                  markers: { /* Use default */ },
                  formatter: function(seriesName, opts) {
                      if (isConnector(seriesName)) return ""; // Uses memoized isConnector
-                     // SERIES_DISPLAY_NAMES is stable, defined outside/top-level
-                     return SERIES_DISPLAY_NAMES[seriesName] || seriesName;
+                     const baseName = getBaseName(seriesName) || seriesName;
+                     let displayName = SERIES_DISPLAY_NAMES[baseName] || baseName;
+                     // *** THAY ĐỔI ĐỂ THÊM CHÚ THÍCH "tốt nhất hiện tại" ***
+                     if (bestmodel && baseName === bestmodel) {
+                         displayName += " (tốt nhất hiện tại)";
+                     }
+                     // *** KẾT THÚC THAY ĐỔI ***
+
+                     return displayName;
                  },
                  onItemClick: { toggleDataSeries: false },
                  onItemHover: { highlightDataSeries: true },
@@ -539,7 +548,7 @@ const Chartline: React.FC<ChartlineProps> = ({
         };
     }, [
         chartData,  chartType, title, selectedFeature,
-        getBaseName, isConnector, isHistory // Include memoized helpers
+        getBaseName, isConnector, isHistory, bestmodel  // Include memoized helpers
          // Include the ,constantisFullscreen, predictWeeks,SERIES_DISPLAY_NAMES
     ]);
 
