@@ -988,7 +988,7 @@ export default function ModelManagement() {
                                                 )}
                                             </div>
                                         </ScrollArea>
-                                        <p className="text-xs text-muted-foreground">Để trống nếu huấn luyện tất cả trạm.</p>
+                                        
                                     </div>
                                 </div>
                             </div>
