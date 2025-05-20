@@ -577,7 +577,7 @@ const Chartline: React.FC<ChartlineProps> = ({
     return (
         <div
             className={`rounded-lg shadow-md bg-white dark:bg-gray-800 p-4 sm:p-6 relative w-full break-words transition-all duration-300 ease-in-out ${
-                isFullscreen ? "fixed inset-0 z-50 overflow-auto bg-white dark:bg-gray-800" : "" // Added z-index for fullscreen
+                isFullscreen ? "fixed inset-0 overflow-auto bg-white dark:bg-gray-800" : "" // Added z-index for fullscreen
             }`}
         >
             {/* Header */}
