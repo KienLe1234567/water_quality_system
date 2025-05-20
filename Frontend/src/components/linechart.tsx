@@ -26,6 +26,7 @@ interface ChartlineProps {
     groupedPredictionDataPoints: Map<string, DataPoint[]>;
     selectedFeature: string;
     title: string;
+    onPredictModeChange: (isPredicting: boolean) => void;
 }
 
 // Chart Type Definition
@@ -79,7 +80,8 @@ const Chartline: React.FC<ChartlineProps> = ({
     historicalDataPoints,
     groupedPredictionDataPoints,
     selectedFeature,
-    title
+    title,
+    onPredictModeChange
 }) => {
     const [predictMode, setPredictMode] = useState(false);
     const [predictWeeks, setPredictWeeks] = useState<number>(1);
@@ -87,6 +89,10 @@ const Chartline: React.FC<ChartlineProps> = ({
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [chartType, setChartType] = useState<ChartType>("line");
 
+    const handlePredictModeToggle = useCallback((checked: boolean) => {
+        setPredictMode(checked);
+        onPredictModeChange(checked); // <<<< GỌI CALLBACK KHI PREDICT MODE THAY ĐỔI
+    }, [onPredictModeChange]);
     // --- Memoized Helper Functions ---
     const getBaseName = useCallback((name: string | undefined): string | undefined => {
         if (!name) return undefined;
@@ -607,7 +613,7 @@ const Chartline: React.FC<ChartlineProps> = ({
                             </Label>
                             <Switch
                                  checked={predictMode}
-                                 onCheckedChange={setPredictMode}
+                                 onCheckedChange={handlePredictModeToggle}
                                  id="predict-mode"
                                  disabled={!hasRawPredictionData}
                                  className="data-[state=unchecked]:bg-gray-300 dark:data-[state=unchecked]:bg-gray-600 data-[state=checked]:bg-[#FF4560]"
