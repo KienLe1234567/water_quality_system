@@ -36,7 +36,16 @@ interface StationDetailsProps {
   thresholds: ElementRange[] | null;
   realtimeIndicatorValues: RealtimeIndicatorData | null;
 }
-
+const getStatusTailwindClasses = (status: string): string => {
+       switch (status) {
+           case "Rất Tốt": return "bg-emerald-100 text-emerald-900 border-emerald-200";
+           case "Tốt": return "bg-green-100 text-green-800 border-green-200";
+           case "Trung Bình": return "bg-yellow-100 text-yellow-800 border-yellow-200";
+           case "Kém": return "bg-orange-100 text-orange-800 border-orange-200";
+           case "Rất Kém": return "bg-red-100 text-red-800 border-red-200";
+           default: return "bg-gray-100 text-gray-800 border-gray-200";
+      }
+  };
 function getIconForFeature(featureName: string) {
    switch (featureName.toUpperCase()) {
       case 'PH': return FlaskRound;
@@ -48,6 +57,7 @@ function getIconForFeature(featureName: string) {
       case 'COD': return Activity;
       case 'EC': return Zap;
       case 'AH': return HelpCircle; // AH (Aeromonas Hydrophila)
+      case 'WQI': return Gauge;
       // Thêm các icon khác nếu cần
       default: return HelpCircle;
   }
@@ -116,11 +126,44 @@ export default function StationDetails({
 
   return (
       <Card className="w-full bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
-          {/* Không hiển thị CardHeader và CardContent WQI/Recommendation riêng biệt nữa */}
-          {/* <CardHeader> ... </CardHeader> */}
-          {/* <CardContent> ... WQI/Recommendation cards ... </CardContent> */}
+          <CardHeader className="pb-3 pt-4 px-4 bg-gray-50 border-b border-gray-200">
+               <div className="flex flex-wrap justify-between items-start gap-2">
+                 <div>
+                     <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                         <MapPin className="w-5 h-5 text-blue-600 inline-block flex-shrink-0"/>
+                         <span className="break-words">Trạm: {selectedStation.name}</span>
+                     </h2>
+                     {selectedStation.location && (
+                         <p className="text-sm text-gray-600 mt-1" style={{ paddingLeft: '28px' }}>{selectedStation.location}</p>
+                     )}
+                 </div>
+                 <Badge variant="outline" className={`${getStatusTailwindClasses(selectedStation.status)} px-3 py-1 text-sm font-medium rounded-md whitespace-nowrap self-center`}>
+                     {selectedStation.status}
+                 </Badge>
+               </div>
+          </CardHeader>
 
-          <CardContent className="p-4"> {/* Chỉ có một CardContent cho các chỉ số */}
+          <CardContent className="p-4">
+              {/* Phần WQI và Khuyến cáo */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                   <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 flex flex-col justify-between">
+                     <div className="flex items-center gap-2 mb-2">
+                         <Gauge className="w-5 h-5 text-blue-700 flex-shrink-0" />
+                         <h3 className="font-semibold text-blue-800">Chỉ số chất lượng nước (WQI)</h3>
+                     </div>
+                     <div className="text-right">
+                         <span className="text-4xl font-bold text-blue-700">{selectedStation.wqi ?? "--"}</span>
+                     </div>
+                   </div>
+                   <div className="bg-amber-50 p-4 rounded-lg border border-amber-100">
+                     <div className="flex items-center gap-2 mb-2">
+                         <Info className="w-5 h-5 text-amber-700 flex-shrink-0" />
+                         <h3 className="font-semibold text-amber-800">Khuyến cáo</h3>
+                     </div>
+                     <p className="text-sm text-gray-800 leading-relaxed">{selectedStation.recommendation}</p>
+                   </div>
+              </div>
+
               { (latestDataPoint || realtimeIndicatorValues) && availableFeatures && availableFeatures.length > 0 && (
                   <>
                       <h4 className="text-md font-semibold text-gray-700 mb-3">
