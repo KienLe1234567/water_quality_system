@@ -159,9 +159,21 @@ export default function StationsPage() {
             router.push(newUrl, { scroll: false });
             setRealtimeIndicatorValues(null);
             latestRawRealtimeDataRef.current = null;
+            const currentStationList = searchTerm ? filteredStations : stations;
+            const stationIndex = currentStationList.findIndex(s => s.id === station.id);
+
+            if (stationIndex !== -1) {
+                const targetPage = Math.floor(stationIndex / itemsPerPage) + 1;
+                // console.log(`[StationsPage] Station ${stationToSelect.name} found at index ${stationIndex}, target page: ${targetPage}`);
+                setCurrentPage(targetPage);
+            } else {
+                // console.warn(`[StationsPage] Selected station ${stationToSelect.name} not found in current list for pagination.`);
+                // Có thể reset về trang 1 nếu không tìm thấy, hoặc giữ nguyên trang hiện tại
+                setCurrentPage(1);
+            }
             // console.log("[StationsPage] Cleared realtime data on station select.");
         }
-    }, [selectedStation?.id, router]);
+    }, [selectedStation?.id, router, stations, searchTerm, itemsPerPage]);
 
     useEffect(() => {
         if (!isLoadingStations && stations.length > 0 && searchParams && !selectedStation && !initialSelectionAttempted) {
