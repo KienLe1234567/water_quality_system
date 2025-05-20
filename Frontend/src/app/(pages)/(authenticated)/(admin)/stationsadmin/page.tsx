@@ -105,7 +105,7 @@ export default function StationsPage() {
     const [initialSelectionAttempted, setInitialSelectionAttempted] = useState(false);
     const [bestModel, setBestModel] = useState<string | null>(null);
     const [isLoadingBestModel, setIsLoadingBestModel] = useState<boolean>(false);
-
+    const [isChartPredictModeOn, setIsChartPredictModeOn] = useState<boolean>(false);
     const [realtimeUpdateInterval] = useState<number>(5000);
     const webSocketRef = useRef<WebSocket | null>(null);
     const latestRawRealtimeDataRef = useRef<any | null>(null);
@@ -174,6 +174,7 @@ export default function StationsPage() {
             // console.log("[StationsPage] Cleared realtime data on station select.");
         }
     }, [selectedStation?.id, router, stations, searchTerm, itemsPerPage]);
+
     useEffect(() => {
         if (!isLoadingStations && stations.length > 0 && searchParams && !selectedStation && !initialSelectionAttempted) {
             const stationIdFromUrl = searchParams.get('id');
@@ -307,9 +308,12 @@ export default function StationsPage() {
         }, realtimeUpdateInterval);
         return () => clearInterval(intervalId);
     }, [selectedStation?.id, realtimeUpdateInterval]);
-
+const handleChartPredictModeChange = useCallback((isOn: boolean) => {
+        setIsChartPredictModeOn(isOn);
+    }, []);
     useEffect(() => {
-        if (selectedStation && selectedStation.id && selectedFeature) {
+        // Chỉ fetch bestModel NẾU isChartPredictModeOn là true
+        if (isChartPredictModeOn && selectedStation && selectedStation.id && selectedFeature) { // <<<< THÊM ĐIỀU KIỆN isChartPredictModeOn
             const fetchBestModel = async () => {
                 setIsLoadingBestModel(true);
                 setBestModel(null);
@@ -317,6 +321,7 @@ export default function StationsPage() {
                 try {
                     const recommendations: BestRecommend = await getBestRecommend(selectedStation.id, parameterNameToFetch);
                     setBestModel(recommendations?.best_model || null);
+                    // console.log("[StationsPage] Fetched best model:", recommendations?.best_model);
                 } catch (error) {
                     console.error("[StationsPage] Failed to fetch best recommend:", error);
                     setBestModel(null);
@@ -326,10 +331,12 @@ export default function StationsPage() {
             };
             fetchBestModel();
         } else {
+            // Nếu predict mode tắt, hoặc không có station/feature, xóa best model
             setBestModel(null);
             setIsLoadingBestModel(false);
+            // console.log("[StationsPage] Predict mode off or no station/feature, clearing best model.");
         }
-    }, [selectedStation, selectedFeature]);
+    }, [selectedStation, selectedFeature, isChartPredictModeOn]); 
 
     const filteredStations = useMemo(() => {
         if (!searchTerm) return stations;
@@ -507,7 +514,7 @@ export default function StationsPage() {
                 <div className="mt-6 w-full p-4 border rounded-lg shadow-md bg-white">
                     <h2 className="text-xl font-semibold mb-4 text-center text-gray-700">Biểu đồ diễn biến chất lượng nước</h2>
                     {isLoadingDataPoints && selectedStation && (<div className="h-80 flex justify-center items-center bg-gray-50 rounded-lg"><p className="text-gray-500 italic">Đang tải dữ liệu biểu đồ...</p></div>)}
-                    {!isLoadingDataPoints && selectedStation && (<> {!error ? ((chartInputData && (chartInputData.historicalDataPoints.length > 0 || chartInputData.groupedPredictionDataPoints.size > 0)) ? (<> <div className="flex justify-center mb-4"> <select value={selectedFeature} onChange={handleFeatureChange} className="border rounded-md p-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150 ease-in-out text-sm" aria-label="Chọn chỉ số hiển thị trên biểu đồ"> {availableFeatures.map((featureName) => (<option key={featureName} value={featureName}>{`Chỉ số ${featureName}`}</option>))} <option value="WQI">Chỉ số chất lượng nước (WQI)</option> </select> </div> <div className="relative h-100"> <Chartline bestmodel={bestModel} historicalDataPoints={chartInputData.historicalDataPoints} groupedPredictionDataPoints={chartInputData.groupedPredictionDataPoints} selectedFeature={chartInputData.selectedFeature} title={`${selectedFeature === 'WQI' ? 'WQI' : `Chỉ số ${selectedFeature}`}`} /> </div> </>) : (<div className="flex justify-center items-center h-60 bg-gray-50 text-gray-600 font-semibold rounded-lg mt-4 p-4">Không có đủ dữ liệu để vẽ biểu đồ.</div>)) : (<div className="flex justify-center items-center h-60 bg-red-50 text-red-700 font-semibold rounded-lg mt-4 p-4 border border-red-200">{error}</div>)} </>)}
+                    {!isLoadingDataPoints && selectedStation && (<> {!error ? ((chartInputData && (chartInputData.historicalDataPoints.length > 0 || chartInputData.groupedPredictionDataPoints.size > 0)) ? (<> <div className="flex justify-center mb-4"> <select value={selectedFeature} onChange={handleFeatureChange} className="border rounded-md p-2 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150 ease-in-out text-sm" aria-label="Chọn chỉ số hiển thị trên biểu đồ"> {availableFeatures.map((featureName) => (<option key={featureName} value={featureName}>{`Chỉ số ${featureName}`}</option>))} <option value="WQI">Chỉ số chất lượng nước (WQI)</option> </select> </div> <div className="relative h-100"> <Chartline bestmodel={bestModel} historicalDataPoints={chartInputData.historicalDataPoints} groupedPredictionDataPoints={chartInputData.groupedPredictionDataPoints} selectedFeature={chartInputData.selectedFeature} title={`${selectedFeature === 'WQI' ? 'WQI' : `Chỉ số ${selectedFeature}`}`} onPredictModeChange={handleChartPredictModeChange}/> </div> </>) : (<div className="flex justify-center items-center h-60 bg-gray-50 text-gray-600 font-semibold rounded-lg mt-4 p-4">Không có đủ dữ liệu để vẽ biểu đồ.</div>)) : (<div className="flex justify-center items-center h-60 bg-red-50 text-red-700 font-semibold rounded-lg mt-4 p-4 border border-red-200">{error}</div>)} </>)}
                     {!selectedStation && (<div className="flex justify-center items-center h-60 bg-gray-50 text-gray-500 font-semibold rounded-lg mt-4 p-4">Vui lòng chọn một trạm để xem biểu đồ.</div>)}
                 </div>
             </div>
