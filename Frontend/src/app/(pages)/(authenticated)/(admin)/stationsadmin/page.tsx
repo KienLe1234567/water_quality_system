@@ -248,7 +248,7 @@ export default function StationsPage() {
             latestRawRealtimeDataRef.current = null;
             return;
         }
-        const wsUrl = "ws://20.193.131.174.nip.io/ws/water-quality";
+        const wsUrl = "wss://20.193.131.174.nip.io/ws/water-quality";
         if (webSocketRef.current) { webSocketRef.current.close(); }
         const ws = new WebSocket(wsUrl);
         webSocketRef.current = ws;
