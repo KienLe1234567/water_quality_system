@@ -16,11 +16,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning={true}>
       <head>
         <link rel="icon" href="/atlogo.png" type="image/jpeg" sizes="16x16" />
       </head>
-      <body className="bg-gray-50">
+      <body className="bg-gray-50" suppressHydrationWarning={true}>
         <Toaster />
         <Suspense
           fallback={
